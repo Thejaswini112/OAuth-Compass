@@ -1,4 +1,4 @@
-# OAuth Fieldnotes — OAuth Setup Guide
+# OAuth Fieldnotes - OAuth Setup Guide
 
 An evidence-first prototype that helps AI agent builders understand OAuth setup requirements. OAuth Fieldnotes combines a searchable guide library with AI-assisted documentation research, evidence quotations, visible uncertainty, and saved, shareable guides.
 
