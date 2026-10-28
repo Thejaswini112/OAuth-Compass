@@ -1,129 +1,147 @@
-# OAuth Fieldnotes - OAuth Setup Guide
+# OAuth Compass
 
-An evidence-first prototype that helps AI agent builders understand OAuth setup requirements. OAuth Fieldnotes combines a searchable guide library with AI-assisted documentation research, evidence quotations, visible uncertainty, and saved, shareable guides.
+**Navigate OAuth integrations with clarity.**
+
+OAuth Compass helps developers building AI agents understand what it takes to connect third-party applications. It brings OAuth setup guidance into one place, helping developers identify prerequisites, follow configuration steps, understand approval requirements, estimate effort, and decide what to do next.
+
+The prototype combines a small guide library with an AI-assisted research flow for unfamiliar applications.
+
+**Live demo:** https://oauth-compass.onrender.com/
+
+**Source code:** https://github.com/Thejaswini112/OAuth-Compass
+
+---
+
+## The Problem
+
+Before connecting an application to an AI agent, developers may need to register an OAuth application, configure redirect URLs and permissions, understand provider-specific requirements, and determine whether verification or production approval is necessary.
+
+This information is often spread across documentation and developer portals. OAuth Compass aims to make the process easier to understand by bringing relevant guidance, sources, potential blockers, and next steps together.
 
 ## Features
 
-- **Searchable guide library:** Browse and search canonical OAuth setup guides.
-- **AI-assisted research:** Generate a structured guide from a supplied documentation URL.
-- **Evidence and uncertainty:** Show supporting quotations where available and flag claims that require verification.
-- **Save and share:** Save generated guides and retrieve them through shareable URLs.
-- **Persistent storage:** Store guides and saved-guide information in a local JSON file.
-- **Error handling:** Display useful feedback when a research source is rejected or a request fails.
+- **Search the guide library:** Find existing OAuth setup guides for applications such as Notion, Slack, and Google Drive.
+- **Generate guides for unfamiliar applications:** Submit a supported documentation URL to trigger AI-assisted research and structured guide generation.
+- **Evidence-aware guidance:** Present information extracted from retrieved documentation, with a clear need for human review where claims have not been independently verified.
+- **Save and share:** Retrieve saved guides through shareable links without requiring an account.
+- **Actionable setup guidance:** Organize information to help developers understand the setup process, requirements, and next steps.
 
-## Evidence and verification limitations
+## How It Works
 
-The seeded Notion, Slack, and Google Drive guides are sample content and are **not live-verified**.
+1. **Search:** Look for an application in the existing guide library.
+2. **Research:** If a suitable guide is unavailable, provide a relevant OAuth documentation URL to initiate research.
+3. **Generate:** The backend retrieves the supplied documentation and uses a Groq-hosted language model to extract and organize relevant information.
+4. **Review:** Inspect the generated guidance and verify important requirements against the original provider documentation.
+5. **Save and share:** Save the guide and use its shareable URL to revisit or share it.
 
-For newly generated guides, the research flow fetches a supplied documentation page and uses an LLM to extract structured information. Supporting quotations are checked against the retrieved text, but a matching quotation does not independently prove that an entire claim is correct.
+The research flow is intended to assist with investigation and preparation. It does not automatically register OAuth applications or complete provider approval.
 
-The application does not execute OAuth flows, test credentials, or establish production readiness. Review generated instructions against current official documentation before using them in a real integration.
+## Technology Stack
 
-## Requirements
+- **Frontend:** React, TypeScript, Vite
+- **Backend:** Node.js, Express, TypeScript
+- **AI research:** Groq API
+- **Persistence:** File-backed JSON storage
+- **Deployment:** Render
+
+## Run Locally
+
+### Prerequisites
 
 - Node.js 20 or newer
 - npm
-- A Groq API key for AI-assisted research
+- A Groq API key for live AI-assisted research
 
-## Run locally
+### 1. Clone the repository
 
-Install dependencies:
+```bash
+git clone https://github.com/Thejaswini112/OAuth-Compass.git
+cd OAuth-Compass
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-Create a local environment file by copying `.env.example` to `.env`.
+### 3. Configure environment variables
 
-On Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Configure the following variables in `.env`:
+Create a `.env` file in the project root and add:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=openai/gpt-oss-20b
 ```
 
-Replace the placeholder with your own Groq API key. Keep `.env` private and never commit it to Git or expose the key in frontend code.
+Use a valid API key from your Groq account. Keep the key in the server-side environment and never commit `.env` to Git.
 
-Start the development servers:
+### 4. Start the development servers
 
 ```bash
 npm run dev
 ```
 
-By default, Vite serves the frontend at `http://localhost:5173` and the Express API runs on port `8787`. The Vite development server proxies API requests to Express.
+Open the local URL printed by Vite in your terminal.
 
-If port `8787` is already in use, stop the existing server process before starting another one.
-
-Local data is stored in `./data/oauth-fieldnotes.json` by default. This file-backed approach avoids native database dependencies and is suitable for local development and demonstrations.
-
-## Build and run
-
-Check TypeScript and create the production frontend build:
+### 5. Build and run the production version
 
 ```bash
 npm run build
-```
-
-Start the Express server:
-
-```bash
 npm start
 ```
 
-The server serves the built frontend when the `dist` directory is available.
-
-Other useful scripts:
+To check TypeScript independently, run:
 
 ```bash
 npm run typecheck
-npm run dev:server
-npm run dev:client
 ```
 
-## API overview
+## Configuration
 
-| Endpoint | Purpose |
+| Variable | Purpose |
 |---|---|
-| `GET /api/health` | Check service and research configuration status |
-| `GET /api/guides` | Retrieve the guide library |
-| `GET /api/guides/:id` | Retrieve a canonical or generated guide |
-| `GET /api/search?q=slack` | Search canonical guides |
-| `POST /api/research` | Research a supplied documentation URL and generate a guide |
-| `GET /api/research/:id` | Retrieve research job status |
-| `POST /api/guides/:id/save` | Save a stored guide and return its URL |
-| `GET /api/saved` | Retrieve saved guides |
+| `GROQ_API_KEY` | Authenticates server-side requests to the Groq API |
+| `GROQ_MODEL` | Selects the language model used for research, where supported by the implementation |
 
-AI-assisted research requires a valid `GROQ_API_KEY` and an accessible, supported documentation URL.
+Do not expose API keys in frontend code or commit them to the repository.
 
-## Security and known limitations
+## Validation Performed
 
-- Research requires a documentation URL supplied by the user; automatic web discovery is not implemented.
-- URL fetching includes safeguards such as protocol checks, resolved-IP checks, redirect limits, timeouts, and response-size limits. These are starter safeguards, not a substitute for a hardened network egress layer.
-- Research is synchronous in this MVP; a production-grade background queue and worker system are not implemented.
-- Storage is file-backed. A managed database and appropriate persistence configuration would be preferable for a multi-instance production deployment.
-- Shareable guide URLs do not provide per-user authorization. Do not store confidential information in guides.
-- The application does not collect OAuth client secrets, access tokens, or refresh tokens.
-- Evidence quotations support traceability but do not guarantee semantic correctness or successful OAuth configuration.
-- Generated instructions and sample guides require human review before real-world use.
+The following manual checks were performed during development:
 
-## Acceptance testing
+- Verified that the guide library displays Notion, Slack, and Google Drive.
+- Generated a guide using a relevant OAuth documentation URL.
+- Confirmed that an irrelevant URL, such as a Groq API keys page, is rejected rather than treated as OAuth setup documentation.
+- Checked that a saved guide remains available after refreshing the local application.
+- Tested that a share link opens the corresponding guide.
+- Checked that errors are presented to the user.
 
-Before submitting or deploying, check that:
+These checks validate key application flows. They do not establish that every generated OAuth requirement is accurate or that any provider would approve an OAuth application.
 
-- The seeded guide library loads and search works.
-- A relevant OAuth documentation URL can generate a guide.
-- An irrelevant URL is rejected without generating an unsupported guide.
-- Research failures produce a clear error message.
-- A saved guide remains saved after a page refresh or server restart.
-- A shareable URL opens the intended guide.
-- `npm run build` completes successfully.
+## Limitations and Future Improvements
 
-## License
+- **Limited library:** This is a focused prototype, not a complete directory of 100 applications.
+- **Documentation input:** The current research flow requires a documentation URL; automatic discovery across multiple sources is not implemented.
+- **Evidence verification:** The presence of supporting text does not guarantee that a generated claim is semantically correct. Important claims should be checked against official provider documentation.
+- **No live OAuth execution:** The application does not register OAuth apps, execute authorization flows, or submit provider approval requests.
+- **Estimates and approvals:** Effort and waiting-time estimates may be uncertain or unavailable. Provider approval and processing times are not guaranteed.
+- **Human review:** Generated guidance requires review before being relied on for production integrations.
+- **Persistence:** The prototype uses file-backed JSON storage. Data on Render's default filesystem may not survive service restarts or redeployments. Durable production persistence would require a managed database or appropriately configured persistent storage.
+- **Production hardening:** The prototype is not intended to replace a security-reviewed production research service.
 
-Add a license if you intend to distribute this project under specific open-source terms.
+## Product Decisions
+
+The prototype prioritizes a small, useful end-to-end workflow over building a large catalogue prematurely.
+
+- Start with a few representative applications to demonstrate different OAuth setup journeys.
+- Use live research to explore unfamiliar applications without manually authoring every guide.
+- Keep API credentials server-side.
+- Make generated guidance shareable and easy to revisit.
+- Treat AI-generated output as research assistance, not proof of successful setup or provider approval.
+
+The next stage would focus on stronger claim-level evidence validation, broader documentation discovery, durable persistence, and testing against additional providers with different approval requirements.
+
+---
+
+**OAuth Compass — Navigate OAuth integrations with clarity.**
